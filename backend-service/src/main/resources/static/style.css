@@ -1,0 +1,12 @@
+body {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+}
+
+#login-container {
+    max-width: 500px;
+    margin-top: 10vh;
+}
+
+.card {
+    border-radius: 1rem;
+}

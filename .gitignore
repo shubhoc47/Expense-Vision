@@ -1,0 +1,34 @@
+# General
+.DS_Store
+Thumbs.db
+
+# IDE Files (IntelliJ, VSCode, Eclipse)
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+
+# Log files
+*.log
+
+# --- Java / Maven (for backend-service) ---
+backend-service/target/
+backend-service/pom.xml.tag
+backend-service/pom.xml.next
+backend-service/release.properties
+backend-service/dependency-reduced-pom.xml
+backend-service/build-log.txt
+backend-service/hs_err_pid*
+
+# --- Python (for ai-service) ---
+ai-service/venv/
+ai-service/__pycache__/
+ai-service/*.pyc
+ai-service/.env
+
+# Ignore sensitive credential files
+# IMPORTANT: Make sure your Google service account JSON key is never committed.
+ai-service/*-key.json
+ai-service/your-key-file-name.json
