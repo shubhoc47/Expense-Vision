@@ -35,8 +35,12 @@ public class ExpenseItemService {
         newItem.setQuantity(itemDto.quantity());
         newItem.setPrice(itemDto.price());
         newItem.setReceipt(receipt);
+        ExpenseItem savedItem = expenseItemRepository.save(newItem);
 
-        return expenseItemRepository.save(newItem);
+        // After saving the new item, update the parent receipt's totals
+        updateReceiptTotals(receipt);
+
+        return savedItem;
     }
 
     // UPDATE
@@ -52,20 +56,41 @@ public class ExpenseItemService {
         item.setItemName(itemDto.itemName());
         item.setQuantity(itemDto.quantity());
         item.setPrice(itemDto.price());
+        updateReceiptTotals(item.getReceipt());
 
         return expenseItemRepository.save(item);
     }
 
     // DELETE
+    @Transactional
     public void deleteExpenseItem(Long itemId, String username) {
+        // Step 1: Find the item to be deleted.
         ExpenseItem item = expenseItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        // Security Check
+        // Step 2: Perform the security check to ensure ownership.
         if (!item.getReceipt().getUser().getUsername().equals(username)) {
             throw new AccessDeniedException("You do not have permission to delete this item");
         }
 
-        expenseItemRepository.delete(item);
+        // Step 3: Get the parent receipt.
+        Receipt receipt = item.getReceipt();
+
+        // Step 4: Remove the child item from the parent's list.
+        // Because of 'orphanRemoval = true', this will cause JPA to delete the item from the database.
+        receipt.getItems().remove(item);
+
+        updateReceiptTotals(receipt);
+    }
+
+    private void updateReceiptTotals(Receipt receipt) {
+        double subtotal = receipt.getItems().stream()
+                .mapToDouble(item -> item.getQuantity()*item.getPrice())
+                .sum();
+
+        double discount = receipt.getTotalDiscount() != null ? receipt.getTotalDiscount() : 0;
+
+        receipt.setTotalAmount(subtotal-discount);
+        receiptRepository.save(receipt);
     }
 }

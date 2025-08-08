@@ -138,10 +138,10 @@ function setupDashboardPage() {
                             itemsHtml += `
                             <li class="list-group-item ps-4 d-flex justify-content-between align-items-center">
                                 <span>&ndash; ${itemQuantity} x ${itemName} ($${itemPrice.toFixed(2)})</span>
-                                <span>
+                                <div class="d-flex flex-nowrap gap-2">
                                     <button class="btn btn-sm btn-outline-primary edit-btn" data-item-id="${item.id}">Edit</button>
                                     <button class="btn btn-sm btn-outline-danger delete-btn" data-item-id="${item.id}">Delete</button>
-                                </span>
+                                </div>
                             </li>`;
                         });
                     }
@@ -208,6 +208,8 @@ function setupDashboardPage() {
     accordionContainer.addEventListener('click', async (e) => {
         const target = e.target;
 
+        console.log("Click detected inside the accordion. Target is:", target);
+
         if (target && target.classList.contains('delete-btn')) {
             const itemId = target.dataset.itemId;
             console.log("itemID: ", itemId);
@@ -220,19 +222,26 @@ function setupDashboardPage() {
             }
         }
 
+        // --- CREATE LOGIC ---
         if (target && target.classList.contains('create-btn')) {
             const receiptId = target.dataset.receiptId;
-            document.getElementById('itemModalLabel').textContent = 'Create New Item';
-            itemForm.reset();
-            document.getElementById('modal-item-id').value = '';
-            document.getElementById('modal-receipt-id').value = receiptId;
-            saveItemButton.dataset.action = 'create';
-            itemModal.show();
+            document.getElementById('itemModalLabel').textContent = 'Add New Item';
+            itemForm.reset(); // Clear any old data from the form
+            document.getElementById('modal-item-id').value = ''; // Ensure item ID is empty
+            document.getElementById('modal-receipt-id').value = receiptId; // Store the parent receipt's ID
+            saveItemButton.dataset.action = 'create'; // Tell the save button what to do
+            itemModal.show(); // Show the pop-up
         }
 
+        // --- EDIT LOGIC ---
         if (target && target.classList.contains('edit-btn')) {
+            // console.log("Edit button was clicked.");
             const itemId = target.dataset.itemId;
+
+            // console.log("Item ID from data attribute:", itemId);
+
             let itemToEdit = null;
+            // Find the specific item object from our stored 'allReceipts' data
             for(const receipt of allReceipts) {
                 const found = receipt.items.find(i => i.id == itemId);
                 if (found) {
@@ -241,20 +250,26 @@ function setupDashboardPage() {
                 }
             }
 
+            // console.log("Found item to edit:", itemToEdit);
+
             if (itemToEdit) {
+                // console.log("Populating and showing the modal.");
+
                 document.getElementById('itemModalLabel').textContent = 'Edit Item';
                 itemForm.reset();
+                // Pre-fill the form with the item's current data
                 document.getElementById('modal-item-id').value = itemToEdit.id;
                 document.getElementById('modal-item-name').value = itemToEdit.itemName;
                 document.getElementById('modal-item-quantity').value = itemToEdit.quantity;
                 document.getElementById('modal-item-price').value = itemToEdit.price;
-                saveItemButton.dataset.action = 'edit';
-                itemModal.show();
+                saveItemButton.dataset.action = 'edit'; // Tell the save button what to do
+                itemModal.show(); // Show the pop-up
             }
         }
     });
 
     // Event listener for the "Save Changes" button in the modal
+    // Event listener for the "Save Changes" button inside the modal
     saveItemButton.addEventListener('click', async () => {
         const action = saveItemButton.dataset.action;
         const itemId = document.getElementById('modal-item-id').value;
@@ -275,7 +290,7 @@ function setupDashboardPage() {
         } else if (action === 'edit') {
             url = `/api/items/${itemId}`;
             method = 'PUT';
-        } else { return; }
+        }
 
         try {
             const response = await fetch(url, {
@@ -285,10 +300,10 @@ function setupDashboardPage() {
             });
 
             if (response.ok) {
-                itemModal.hide();
-                fetchAndDisplayExpenses();
+                itemModal.hide(); // Hide the pop-up on success
+                fetchAndDisplayExpenses(); // Refresh the dashboard
             } else {
-                alert('Failed to save item.');
+                alert('Failed to save item. Please check the details and try again.');
             }
         } catch (error) {
             console.error('Save failed:', error);

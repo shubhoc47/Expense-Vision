@@ -38,7 +38,9 @@ public class ExpenseItemController {
 
     @DeleteMapping("/{itemId}")
     public ResponseEntity<?> deleteExpenseItem(@PathVariable Long itemId, Principal principal) {
+
         try {
+            System.out.println(itemId);
             expenseItemService.deleteExpenseItem(itemId, principal.getName());
             return ResponseEntity.ok("Item deleted successfully");
         } catch (Exception e) {
