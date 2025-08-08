@@ -1,4 +1,4 @@
-"# Expense-Vision:" AI-Powered Receipt \& Expense Tracker
+# Expense-Vision: AI-Powered Receipt & Expense Tracker
 
 
 
@@ -6,11 +6,8 @@ A full-stack web application that digitizes and analyzes physical and digital re
 
 
 
-!\[Application Dashboard Screenshot](link-to-your-screenshot.png)
 
-
-
-\## About The Project
+## About The Project
 
 
 
@@ -18,17 +15,17 @@ This project was built to solve the common problem of manually tracking expenses
 
 
 
-\## Key Features
+## Key Features
 
 
 
-\- \*\*Secure User Authentication:\*\* Full registration and login system using Java Spring Security.
+- **Secure User Authentication:** Full registration and login system using Java Spring Security.
 
-\- \*\*Multi-Format Receipt Upload:\*\* Accepts both \*\*image (JPG, PNG)\*\* and \*\*PDF\*\* receipt files.
+- **Multi-Format Receipt Upload:** Accepts both **image (JPG, PNG)** and **PDF** receipt files.
 
-\- \*\*AI-Powered OCR \& Parsing:\*\* Uses the multimodal \*\*Google Gemini 2.5 Flash\*\* model to perform both OCR and intelligent data extraction in a single step.
+- **AI-Powered OCR & Parsing:** Uses the multimodal **Google Gemini 2.5 Flash** model to perform both OCR and intelligent data extraction in a single step.
 
-\- \*\*Intelligent Data Extraction:\*\* The AI is prompted to extract key information, including:
+- **Intelligent Data Extraction:** The AI is prompted to extract key information, including:
 
 &nbsp;   - Store Name
 
@@ -40,29 +37,29 @@ This project was built to solve the common problem of manually tracking expenses
 
 &nbsp;   - A calculated Final Total (sum of items minus discount)
 
-\- \*\*Dynamic Dashboard:\*\* A responsive frontend built with Bootstrap and JavaScript that displays all expenses, neatly grouped by date in an interactive accordion view.
+- **Dynamic Dashboard:** A responsive frontend built with Bootstrap and JavaScript that displays all expenses, neatly grouped by date in an interactive accordion view.
 
-\- \*\*Fully Containerized:\*\* The entire multi-service application (Java Backend, Python AI Service, MySQL Database) is containerized using \*\*Docker\*\* for consistent and easy deployment.
-
-
-
-\## Tech Stack
+- **Fully Containerized:** The entire multi-service application (Java Backend, Python AI Service, MySQL Database) is containerized using **Docker** for consistent and easy deployment.
 
 
 
-\- \*\*Backend:\*\* Java 17, Spring Boot, Spring Security, Spring Data JPA
-
-\- \*\*AI Service:\*\* Python, Flask, Google Generative AI
-
-\- \*\*Database:\*\* MySQL 8.0
-
-\- \*\*Frontend:\*\* HTML5, CSS3, Bootstrap 5, Vanilla JavaScript
-
-\- \*\*DevOps:\*\* Docker, Docker Compose
+## Tech Stack
 
 
 
-\## Architecture
+- **Backend:** Java 17, Spring Boot, Spring Security, Spring Data JPA
+
+- **AI Service:** Python, Flask, Google Generative AI
+
+- **Database:** MySQL 8.0
+
+- **Frontend:** HTML5, CSS3, Bootstrap 5, Vanilla JavaScript
+
+- **DevOps:** Docker, Docker Compose
+
+
+
+## Architecture
 
 
 
@@ -72,13 +69,13 @@ The application is designed with a clean separation of concerns, following a mic
 
 
 
-\[Frontend (Browser)] \\<--\\> \[Java Spring Boot Backend] \\<--\\> \[Python Flask AI Service] --\\> \[Google Gemini API]
+[Frontend (Browser)] <--> [Java Spring Boot Backend] <--> [Python Flask AI Service] --> [Google Gemini API]
 
 |
 
 V
 
-\[MySQL Database]
+[MySQL Database]
 
 
 
@@ -86,7 +83,7 @@ V
 
 
 
-\## Getting Started
+## Getting Started
 
 
 
@@ -94,35 +91,35 @@ Follow these steps to get a local copy up and running.
 
 
 
-\### Prerequisites
+### Prerequisites
 
 
 
-\- Java 17+ and Maven
+- Java 17+ and Maven
 
-\- Docker Desktop
+- Docker Desktop
 
-\- A Google Gemini API Key
-
-
-
-\### Installation \& Setup
+- A Google Gemini API Key
 
 
 
-1\.  \*\*Clone the repository:\*\*
+### Installation & Setup
+
+
+
+1.  **Clone the repository:**
 
 &nbsp;   ```sh
 
-&nbsp;   git clone \[https://github.com/your-username/your-repo-name.git](https://github.com/your-username/your-repo-name.git)
+&nbsp;   git clone https://github.com/shubhoc47/Expense-Vision.git
 
-&nbsp;   cd your-repo-name
+&nbsp;   cd Expense-Vision
 
 &nbsp;   ```
 
 
 
-2\.  \*\*Configure Environment Variables:\*\*
+2.  **Configure Environment Variables:**
 
 &nbsp;   This project requires a Google Gemini API key. In the `docker-compose.yml` file, find the `ai-service` definition and replace the placeholder with your actual key.
 
@@ -132,13 +129,13 @@ Follow these steps to get a local copy up and running.
 
 &nbsp;   environment:
 
-&nbsp;     - GEMINI\_API\_KEY=your\_gemini\_key\_here
+&nbsp;     - GEMINI_API_KEY=your_gemini_key_here
 
 &nbsp;   ```
 
 
 
-3\.  \*\*Build the Java Application:\*\*
+3.  **Build the Java Application:**
 
 &nbsp;   Navigate to the backend service directory and run the Maven package command. This will create a runnable `.jar` file.
 
@@ -154,7 +151,7 @@ Follow these steps to get a local copy up and running.
 
 
 
-4\.  \*\*Run the Entire Application:\*\*
+4.  **Run the Entire Application:**
 
 &nbsp;   From the root directory, use Docker Compose to build the images and start all the services.
 
