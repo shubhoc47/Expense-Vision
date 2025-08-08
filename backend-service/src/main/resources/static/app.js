@@ -77,30 +77,30 @@ function setupDashboardPage() {
     const uploadForm = document.getElementById('upload-form');
     const logoutButton = document.getElementById('logout-button');
     const uploadStatus = document.getElementById('upload-status');
+    const itemModalElement = document.getElementById('itemModal');
+    const itemModal = new bootstrap.Modal(itemModalElement);
+    const saveItemButton = document.getElementById('save-item-button');
+    const itemForm = document.getElementById('item-form');
 
-    // This function fetches all expenses and builds the accordion UI
+    let allReceipts = []; // Store receipts to find item data for editing
+
     async function fetchAndDisplayExpenses() {
         try {
             const response = await fetch('/api/expenses');
-
             if (!response.ok) {
-                if (response.status === 401 || response.status === 403) {
-                    window.location.href = 'index.html';
-                }
+                if (response.status === 401 || response.status === 403) window.location.href = 'index.html';
                 return;
             }
 
-            const receipts = await response.json();
-            const accordionContainer = document.getElementById('expenses-accordion');
-
+            allReceipts = await response.json(); // Save data to our global variable
             accordionContainer.innerHTML = '';
 
-            if (receipts.length === 0) {
+            if (allReceipts.length === 0) {
                 accordionContainer.innerHTML = '<p class="text-muted">No expenses found. Upload a receipt to get started!</p>';
                 return;
             }
 
-            const groupedByDate = receipts.reduce((acc, receipt) => {
+            const groupedByDate = allReceipts.reduce((acc, receipt) => {
                 const date = receipt.receiptDate;
                 if (!acc[date]) acc[date] = [];
                 acc[date].push(receipt);
@@ -117,7 +117,11 @@ function setupDashboardPage() {
                     const totalAmount = receipt.totalAmount || 0.00;
                     const totalDiscount = receipt.totalDiscount || 0.00;
 
-                    itemsHtml += `<li class="list-group-item bg-light"><strong>${storeName} (Total: $${totalAmount.toFixed(2)})</strong></li>`;
+                    itemsHtml += `
+                    <li class="list-group-item bg-light d-flex justify-content-between align-items-center">
+                        <strong>${storeName} (Total: $${totalAmount.toFixed(2)})</strong>
+                        <button class="btn btn-sm btn-outline-success create-btn" data-receipt-id="${receipt.id}">Add Item</button>
+                    </li>`;
 
                     if (totalDiscount > 0) {
                         itemsHtml += `<li class="list-group-item list-group-item-success ps-4">Savings: -$${totalDiscount.toFixed(2)}</li>`;
@@ -125,15 +129,26 @@ function setupDashboardPage() {
 
                     if (receipt.items && receipt.items.length > 0) {
                         receipt.items.forEach(item => {
+                            // console.log("Inspecting item object:", item);
                             const itemName = item.itemName || 'Unnamed Item';
                             const itemPrice = item.price || 0.00;
                             const itemQuantity = item.quantity || 1;
-                            itemsHtml += `<li class="list-group-item ps-4">&ndash; ${itemQuantity} x ${itemName} ($${itemPrice.toFixed(2)})</li>`;
+
+                            // This block creates the HTML for each item, including the buttons
+                            itemsHtml += `
+                            <li class="list-group-item ps-4 d-flex justify-content-between align-items-center">
+                                <span>&ndash; ${itemQuantity} x ${itemName} ($${itemPrice.toFixed(2)})</span>
+                                <span>
+                                    <button class="btn btn-sm btn-outline-primary edit-btn" data-item-id="${item.id}">Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn" data-item-id="${item.id}">Delete</button>
+                                </span>
+                            </li>`;
                         });
                     }
                 });
                 itemsHtml += '</ul>';
 
+                // This is the full HTML for the accordion item that was missing
                 const accordionItemHtml = `
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading-${index}">
@@ -142,27 +157,21 @@ function setupDashboardPage() {
                         </button>
                     </h2>
                     <div id="collapse-${index}" class="accordion-collapse collapse" data-bs-parent="#expenses-accordion">
-                        <div class="accordion-body">
-                            ${itemsHtml}
-                        </div>
+                        <div class="accordion-body">${itemsHtml}</div>
                     </div>
-                </div>
-            `;
+                </div>`;
 
                 accordionContainer.innerHTML += accordionItemHtml;
                 index++;
             }
 
         } catch (error) {
-            console.error('Error fetching or displaying expenses:', error);
-            const accordionContainer = document.getElementById('expenses-accordion');
-            if(accordionContainer) {
-                accordionContainer.innerHTML = '<p class="text-danger">Could not load expenses. Please try again later.</p>';
-            }
+            console.error('Error fetching expenses:', error);
         }
     }
 
-    // Event listener for the receipt upload form
+    // --- ALL EVENT LISTENERS ---
+
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         uploadStatus.textContent = 'Processing...';
@@ -173,7 +182,6 @@ function setupDashboardPage() {
         formData.append('image', imageFile);
 
         try {
-            // The browser will automatically include the session cookie with this request
             const response = await fetch('/api/receipts/upload', {
                 method: 'POST',
                 body: formData
@@ -183,7 +191,7 @@ function setupDashboardPage() {
                 uploadStatus.textContent = 'Receipt uploaded successfully!';
                 uploadStatus.className = 'mt-3 text-success';
                 uploadForm.reset();
-                fetchAndDisplayExpenses(); // Refresh the expense list
+                fetchAndDisplayExpenses();
             } else {
                 uploadStatus.textContent = 'Upload failed. Please try again.';
                 uploadStatus.className = 'mt-3 text-danger';
@@ -194,16 +202,102 @@ function setupDashboardPage() {
         }
     });
 
-    // Event listener for the logout button
-    logoutButton.addEventListener('click', () => {
-        // Redirect to the logout URL handled by Spring Security
-        window.location.href = '/logout';
+    logoutButton.addEventListener('click', () => { window.location.href = '/logout'; });
+
+    // A single listener for all Create, Edit, and Delete button clicks
+    accordionContainer.addEventListener('click', async (e) => {
+        const target = e.target;
+
+        if (target && target.classList.contains('delete-btn')) {
+            const itemId = target.dataset.itemId;
+            console.log("itemID: ", itemId);
+            if (confirm('Are you sure you want to delete this item?')) {
+                try {
+                    const response = await fetch(`/api/items/${itemId}`, { method: 'DELETE' });
+                    if (response.ok) fetchAndDisplayExpenses();
+                    else alert('Failed to delete item.');
+                } catch (error) { console.error('Delete failed:', error); }
+            }
+        }
+
+        if (target && target.classList.contains('create-btn')) {
+            const receiptId = target.dataset.receiptId;
+            document.getElementById('itemModalLabel').textContent = 'Create New Item';
+            itemForm.reset();
+            document.getElementById('modal-item-id').value = '';
+            document.getElementById('modal-receipt-id').value = receiptId;
+            saveItemButton.dataset.action = 'create';
+            itemModal.show();
+        }
+
+        if (target && target.classList.contains('edit-btn')) {
+            const itemId = target.dataset.itemId;
+            let itemToEdit = null;
+            for(const receipt of allReceipts) {
+                const found = receipt.items.find(i => i.id == itemId);
+                if (found) {
+                    itemToEdit = found;
+                    break;
+                }
+            }
+
+            if (itemToEdit) {
+                document.getElementById('itemModalLabel').textContent = 'Edit Item';
+                itemForm.reset();
+                document.getElementById('modal-item-id').value = itemToEdit.id;
+                document.getElementById('modal-item-name').value = itemToEdit.itemName;
+                document.getElementById('modal-item-quantity').value = itemToEdit.quantity;
+                document.getElementById('modal-item-price').value = itemToEdit.price;
+                saveItemButton.dataset.action = 'edit';
+                itemModal.show();
+            }
+        }
     });
 
-    // Initial call to load the expenses when the dashboard page loads
+    // Event listener for the "Save Changes" button in the modal
+    saveItemButton.addEventListener('click', async () => {
+        const action = saveItemButton.dataset.action;
+        const itemId = document.getElementById('modal-item-id').value;
+        const receiptId = document.getElementById('modal-receipt-id').value;
+
+        const itemData = {
+            itemName: document.getElementById('modal-item-name').value,
+            quantity: parseInt(document.getElementById('modal-item-quantity').value),
+            price: parseFloat(document.getElementById('modal-item-price').value)
+        };
+
+        let url = '';
+        let method = '';
+
+        if (action === 'create') {
+            url = `/api/items/receipt/${receiptId}`;
+            method = 'POST';
+        } else if (action === 'edit') {
+            url = `/api/items/${itemId}`;
+            method = 'PUT';
+        } else { return; }
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(itemData)
+            });
+
+            if (response.ok) {
+                itemModal.hide();
+                fetchAndDisplayExpenses();
+            } else {
+                alert('Failed to save item.');
+            }
+        } catch (error) {
+            console.error('Save failed:', error);
+        }
+    });
+
+    // Initial data load
     fetchAndDisplayExpenses();
 }
-
 /**
  * A helper function to show alert messages on the forms
  */

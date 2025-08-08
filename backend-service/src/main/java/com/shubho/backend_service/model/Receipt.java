@@ -85,4 +85,12 @@ public class Receipt {
     public void setTotalDiscount(Double totalDiscount) {
         this.totalDiscount = totalDiscount;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
